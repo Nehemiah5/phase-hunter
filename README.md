@@ -1,7 +1,7 @@
 ![MATLAB](https://img.shields.io/badge/MATLAB-R2025a-orange)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-# phase-portrait-visualizer
+# phaseHunter
 MATLAB tool for generating phase portraits of 2D linear homogeneous dynamical systems with constant coefficients.
 
 # Overview
