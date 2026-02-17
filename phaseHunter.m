@@ -23,7 +23,7 @@ d = abs(D);
 
 % Prevents floating point noise introducing false imaginary components
 
-if d(1) <= 1e-12
+if d(1) <= 1e-12 && d(2) <= 1e-12
 
     D = zeros(2,1);
 
