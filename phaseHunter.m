@@ -21,6 +21,19 @@ D = diag(p);
 
 d = abs(D);
 
+% Safety net for systems in which floating point error causes slight
+% differences between what should be repeated eigenvalues
+
+Discrim1 = trace(coeffMatrix)^2;
+
+Discrim2 = 4*((coeffMatrix(1)*coeffMatrix(4))-(coeffMatrix(2)*coeffMatrix(3)));
+
+if Discrim1 - Discrim2 == 0
+
+    D(2) = D(1);
+
+end
+
 % Prevents floating point noise introducing false imaginary components
 
 if d(1) <= 1e-12 && d(2) <= 1e-12
