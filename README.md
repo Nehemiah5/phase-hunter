@@ -108,6 +108,8 @@ Example (shift, centered): direction = phaseHunter([5 -4; 5 -3], [-10 10], [-10 
 
 Note: using the empty vector for xLims and yLims will not impose any limits on the viewing window. For some portraits, such as spirals, this may be preferable, however, others will likely require some viewing limits for best results.
 
+v 1.1 Note: If you do not wish to shift your system, simply leave shiftVec as the empty vector.
+
 ## Mathematical Background
 
 The behavior of the system is determined by the eigenvalues of the coefficient matrix:
