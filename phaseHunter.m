@@ -153,9 +153,9 @@ if abs(imag(D)) >= 1e-12
 
 elseif D(1) ~= D(2) && D(1) ~= 0 && D(2) ~= 0 % possible bug here
 
-    V1 = V(:,1)
+    V1 = V(:,1);
 
-    V2 = V(:,2)
+    V2 = V(:,2);
 
     figure
 
