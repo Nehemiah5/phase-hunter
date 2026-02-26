@@ -4,6 +4,8 @@
 # phaseHunter
 MATLAB tool for generating phase portraits of 2D linear homogeneous dynamical systems with constant coefficients.
 
+Version 1.1: Added compatibility for shifted systems, as well as an optional centering feature on graphs (see Basic Function Usage section for more details).
+
 # Overview
 
 This project provides a MATLAB function for visualizing the phase portraits of 2D linear systems of the form $$\mathbf{x}' = \mathbf{Ax}$$, where $$\mathbf{A}$$ is a 2x2 constant coefficient matrix.
@@ -42,6 +44,8 @@ Handles:
 
   * degenerate and defective matrices
 
+  * shifted systems
+
 Plots eigenvector solutions and critical lines
 
 Returns a text description of system behavior
@@ -66,7 +70,7 @@ Below are some examples of phase portraits I have generated with this function. 
 
 # Basic Function Usage
 
-direction = phaseHunter(coeffMatrix, c1Interval, c2Interval, numCoeffs, timeInterval, xLims, yLims)
+direction = phaseHunter(coeffMatrix, c1Interval, c2Interval, numCoeffs, shiftVec, timeInterval, xLims, yLims, isCentered)
 
 Inputs:
 
@@ -84,13 +88,23 @@ Inputs:
 
 * yLims: y-axis viewing window (optional)
 
+Post v 1.1:
+
+* shiftVec: A 2x1 column vector specifying how to shift the phase portrait
+
+* isCentered: A double (1 or 0) specifying whether to center the view of the graph on the shifted node (optional but useful for shifted systems)
+
 Outputs:
 
 * direction: a text description of the type and long-term behavior of the system
 
 * Plot of phase portrait
 
-Example: direction = phaseHunter([10 3; 4 -4], [-5 5], [-5 5], 8, [-1 1], [10 10], [-10 10])
+Example (no shift): direction = phaseHunter([5 -4; 5 -3], [-10 10], [-10 10], 10, [-5,5], [], [-10 10], [-10 10], 0)
+
+Example (shift, not centered): direction = phaseHunter([5 -4; 5 -3], [-10 10], [-10 10], 10, [-5,5], [1;1], [-10 10], [-10 10], 0)
+
+Example (shift, centered): direction = phaseHunter([5 -4; 5 -3], [-10 10], [-10 10], 10, [-5,5], [], [-10 10], [-10 10], 1)
 
 Note: using the empty vector for xLims and yLims will not impose any limits on the viewing window. For some portraits, such as spirals, this may be preferable, however, others will likely require some viewing limits for best results.
 
@@ -110,13 +124,21 @@ The behavior of the system is determined by the eigenvalues of the coefficient m
 
 * Zero eigenvalues &rarr; degenerate equilibrium
 
-The solution structure typically follows:
+For example, the solution structure for systems with real, distinct eigenvalues typically follows:
 
 $$
 \mathbf{x}(t) = c_1 e^{\lambda_1 t}\mathbf{v}_1 + c_2 e^{\lambda_2 t}\mathbf{v}_2
 $$
 
-with modifications for repeated or defective eigenvalues.
+Or for shifted systems:
+
+$$
+\mathbf{x}(t) = c_1 e^{\lambda_1 t}\mathbf{v}_1 + c_2 e^{\lambda_2 t}\mathbf{v}_2 + a
+$$
+
+where $$a$$ is the shift vector
+
+Modifications can be made for repeated eigenvalues, complex eigenvalues, etc.
 
 ## Project Motivation
 
