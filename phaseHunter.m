@@ -6,12 +6,15 @@
 % Handles:
 %   - real distinct eigenvalues
 %   - complex conjugate eigenvalues
-%   - repeated eigenvalues (defective and diagonalizable)
+%   - repeated eigenvalues (defective and diagonal)
 %   - zero eigenvalues
+%   - shifted systems
 %
 % Author: Nehemiah Chavers
+%
+% See ReadMe for more information on function syntax and proper input formats
 
-function direction = phaseHunter(coeffMatrix, c1Interval, c2Interval, numCoeffs, timeInterval, xLims, yLims)
+function direction = phaseHunter(coeffMatrix, c1Interval, c2Interval, numCoeffs, timeInterval, shiftVec, xLims, yLims, isCentered)
 
 % Compute eigenvalues and eigenvectors
 
@@ -21,8 +24,16 @@ D = diag(p);
 
 d = abs(D);
 
+% Set shiftVec to zero vector if left empty
+
+if isempty(shiftVec)
+
+    shiftVec = zeros(2,1);
+
+end
+
 % Safety net for systems in which floating point error causes slight
-% differences between what should be repeated eigenvalues
+% differences in what should be repeated eigenvalues
 
 Discrim1 = trace(coeffMatrix)^2;
 
@@ -34,9 +45,9 @@ if Discrim1 - Discrim2 == 0
 
 end
 
-% Prevents floating point noise introducing false imaginary components
+% Prevents floating point noise from introducing false imaginary components
 
-if d(1) <= 1e-12 && d(2) <= 1e-12
+if d(1) <= 1e-12 && d(2) <= 1e-12 % 1e-12 works as a cutoff value for most systems, adjust if necessary
 
     D = zeros(2,1);
 
@@ -92,7 +103,7 @@ if abs(imag(D)) >= 1e-12
     
         x_2 = exp(Real*t).*x2;
     
-        x = x_1 + x_2;
+        x = x_1 + x_2 + shiftVec; % Added functionality for shifted systems
     
         x_1new = x(1,:);
     
@@ -110,41 +121,41 @@ if abs(imag(D)) >= 1e-12
     
     title('Phase Portrait')
 
-    % Determines direction of portrait and classifies the node (0,0)
+    % Determines direction of portrait and classifies the node
 
     if coeffMatrix(2) > 0 && coeffMatrix(1) + coeffMatrix(4) < 0
 
-        direction = sprintf('The eigenvalues are complex, the point (0,0) is a spiral sink, and the phase portrait propagates counterclockwise.');
+        direction = sprintf('The eigenvalues are complex, the point (%d,%d) is a spiral sink, and the phase portrait propagates counterclockwise.', shiftVec(1), shiftVec(2));
 
     elseif coeffMatrix(2) > 0 && coeffMatrix(1) + coeffMatrix(4) > 0
 
-        direction = sprintf('The eigenvalues are complex, the point (0,0) is a spiral source, and the phase portrait propagates counterclockwise.');
+        direction = sprintf('The eigenvalues are complex, the point (%d,%d) is a spiral source, and the phase portrait propagates counterclockwise.', shiftVec(1), shiftVec(2));
 
     elseif coeffMatrix(2) > 0 && coeffMatrix(1) + coeffMatrix(4) == 0
 
-        direction = sprintf('The eigenvalues are complex, the point (0,0) is a center, and the phase portrait propagates counterclockwise.');
+        direction = sprintf('The eigenvalues are complex, the point (%d,%d) is a center, and the phase portrait propagates counterclockwise.', shiftVec(1), shiftVec(2));
 
     elseif coeffMatrix(2) < 0 && coeffMatrix(1) + coeffMatrix(4) < 0
 
-        direction = sprintf('The the eigenvalues are complex, the point (0,0) is a spiral sink, and the phase portrait propagates clockwise.');
+        direction = sprintf('The the eigenvalues are complex, the point (%d,%d) is a spiral sink, and the phase portrait propagates clockwise.', shiftVec(1), shiftVec(2));
 
     elseif coeffMatrix(2) < 0 && coeffMatrix(1) + coeffMatrix(4) > 0
 
-        direction = sprintf('The eigenvalues are complex, the point (0,0) is a spiral source, and the phase portrait propagates clockwise.');
+        direction = sprintf('The eigenvalues are complex, the point (%d,%d) is a spiral source, and the phase portrait propagates clockwise.', shiftVec(1), shiftVec(2));
 
     elseif coeffMatrix(2) < 0 && coeffMatrix(1) + coeffMatrix(4) == 0
 
-        direction = sprintf('The eigenvalues are complex, the point (0,0) is a center, and the phase portrait propagates clockwise.');
+        direction = sprintf('The eigenvalues are complex, the point (%d,%d) is a center, and the phase portrait propagates clockwise.', shiftVec(1), shiftVec(2));
 
     end
 
 % Real distinct eigenvalues case    
 
-elseif D(1) ~= D(2) && D(1) ~= 0 && D(2) ~= 0
+elseif D(1) ~= D(2) && D(1) ~= 0 && D(2) ~= 0 % possible bug here
 
-    V1 = V(:,1);
+    V1 = V(:,1)
 
-    V2 = V(:,2);
+    V2 = V(:,2)
 
     figure
 
@@ -158,7 +169,7 @@ elseif D(1) ~= D(2) && D(1) ~= 0 && D(2) ~= 0
         
             x2 = c2(j).*exp(D(2)*t).*V2;
         
-            x = x1 + x2;
+            x = x1 + x2 + shiftVec; % Added functionality for shifted systems
         
             x_1new = x(1,:);
         
@@ -170,15 +181,15 @@ elseif D(1) ~= D(2) && D(1) ~= 0 && D(2) ~= 0
 
     end
 
-    % Plots eigenvector solutions in blue
+    % Plots eigenvector solutions in blue + shift
 
-    plot(x1(1,:), x1(2,:), 'b-')
+    plot(x1(1,:) + shiftVec(1), x1(2,:) + shiftVec(2), 'b-')
  
-    plot(-x1(1,:), -x1(2,:), 'b-')
+    plot(-x1(1,:) + shiftVec(1), -x1(2,:) + shiftVec(2), 'b-')
 
-    plot(x2(1,:), x2(2,:),'b-')
+    plot(x2(1,:) + shiftVec(1), x2(2,:) + shiftVec(2),'b-')
 
-    plot(-x2(1,:), -x2(2,:),'b-')
+    plot(-x2(1,:) + shiftVec(1), -x2(2,:) + shiftVec(2),'b-')
 
     hold off
 
@@ -188,19 +199,19 @@ elseif D(1) ~= D(2) && D(1) ~= 0 && D(2) ~= 0
     
     title('Phase Portrait')
 
-    % Determines direction of portrait and classifies the node (0,0)
+    % Determines direction of portrait and classifies the node
 
-    if D(1) < 0 && D(2) > 0 || D(1) > 0 && D(2) < 0
+    if (D(1) < 0 && D(2) > 0 || D(1) > 0 && D(2) < 0) && D(1) ~= D(2) 
 
-        direction = sprintf('The eigenvalues are real, distinct, and have different signs, so (0,0) is a saddle point.');
+        direction = sprintf('The eigenvalues are real, distinct, and have different signs, so (%d,%d) is a saddle point.', shiftVec(1), shiftVec(2));
 
     elseif D(1) > 0 && D(2) > 0
 
-        direction = sprintf('Both eigenvalues are real, distinct, and positive, so (0,0) is a source.');
+        direction = sprintf('Both eigenvalues are real, distinct, and positive, so (%d,%d) is a source.', shiftVec(1), shiftVec(2));
 
     elseif D(1) < 0 && D(2) < 0
 
-        direction = sprintf('Both eigenvalues are real, distinct, and negative, so (0,0) is a sink.');
+        direction = sprintf('Both eigenvalues are real, distinct, and negative, so (%d,%d) is a sink.', shiftVec(1), shiftVec(2));
 
     end
 
@@ -214,9 +225,7 @@ elseif D(1) == D(2)
 
     M = coeffMatrix - lambda.*eye(2);
 
-    % Calculates generalized eigenvector w
-
-    w = pinv(M)*v;
+    w = pinv(M)*v; % Calculates generalized eigenvector w
 
     n = null(M);
 
@@ -236,7 +245,7 @@ elseif D(1) == D(2)
     
             x2 = c2(k)*exp(lambda*t).*(t.*v + w);
     
-            x = x1 + x2;
+            x = x1 + x2 + shiftVec; % Added functionality for shifted systems
     
             x1_new = x(1,:);
     
@@ -246,11 +255,11 @@ elseif D(1) == D(2)
     
         end
 
-        % Plots solutions along the eigenvector v
+        % Plots solutions along the eigenvector v + shift
     
-        plot(x1(1,:), x1(2,:), 'b-')
+        plot(x1(1,:) + shiftVec(1), x1(2,:) + shiftVec(2), 'b-')
      
-        plot(-x1(1,:), -x1(2,:), 'b-')
+        plot(-x1(1,:) + shiftVec(1), -x1(2,:) + shiftVec(2), 'b-')
 
         % Handles special cases when the repeated eigenvalue is zero
 
@@ -264,7 +273,7 @@ elseif D(1) == D(2)
 
                 ybounds = [yl(2) yl(1)];
 
-                plot(zeros(1,2), ybounds, 'm-')
+                plot(zeros(1,2) + shiftVec(1), ybounds, 'm-') % Shifts critical line
 
              % Handles case when v is on the x1-axis   
 
@@ -274,7 +283,7 @@ elseif D(1) == D(2)
 
                 xbounds = [xl(2) xl(1)];
 
-                plot(xbounds, zeros(1,2), 'm-')
+                plot(xbounds, zeros(1,2) + shiftVec(2), 'm-') % Shifts critical line
 
             % Handles general case when v is not on the x1- or x2-axis    
 
@@ -290,7 +299,7 @@ elseif D(1) == D(2)
     
                 ybounds = [y -y];
     
-                plot(xbounds, ybounds, 'm-')
+                plot(xbounds + shiftVec(1), ybounds + shiftVec(2), 'm-') % Shifts critical line
 
             end
 
@@ -311,21 +320,25 @@ elseif D(1) == D(2)
     
         if lambda > 0
     
-            direction = sprintf('The eigenvalue is positive, so (0,0) is a source.');
+            direction = sprintf('The eigenvalue is positive, so (%d,%d) is a source.', shiftVec(1), shiftVec(2));
             
         elseif lambda < 0
     
-            direction = sprintf('The eigenvalue is negative, so (0,0) is a sink');
+            direction = sprintf('The eigenvalue is negative, so (%d,%d) is a sink', shiftVec(1), shiftVec(2));
 
-        elseif lambda == 0
+        elseif lambda == 0 && shiftVec(1) == 0 && shiftVec(2) == 0
 
-            direction = sprintf('This is a special case when both eigenvalues are zero, so every point on the line spanned by the eigenvector [%f %f] is a critical point.', v(1), v(2));
+            direction = sprintf('This is a special case when both eigenvalues are zero, so every point on the line spanned by the eigenvector [%d %d] is a critical point.', v(1), v(2));
+
+        elseif lambda == 0 && (shiftVec(1) ~= 0 || shiftVec(2) ~= 0)
+
+            direction = sprintf('This is a special case when both eigenvalues are zero, so every point on the line spanned by the shifted eigenvector [%d %d], passing through the point (%d,%d), is a critical point.', v(1), v(2), shiftVec(1), shiftVec(2));
 
             % Note the critical line is shown in magenta
     
         end
 
-    % Handles systems with diagonalizable coefficient matrices    
+    % Handles systems with diagonal coefficient matrices    
     
     elseif ~isempty(n) && r == c
 
@@ -343,9 +356,11 @@ elseif D(1) == D(2)
 
             xnew_1 = x_1*x1;
 
-            plot(xnew_1(1,:), xnew_1(2,:), 'r-')
+            % Added functionality for shifted systems
 
-            plot(-xnew_1(1,:), -xnew_1(2,:), 'r-')
+            plot(xnew_1(1,:) + shiftVec(1), xnew_1(2,:) + shiftVec(2), 'r-')
+
+            plot(-xnew_1(1,:) + shiftVec(1), -xnew_1(2,:) + shiftVec(2), 'r-')
 
         end
 
@@ -355,18 +370,17 @@ elseif D(1) == D(2)
         
         title('Phase Portrait')
 
-        % Determines direction of portrait and classifies the node (0,0)
+        % Determines direction of portrait and classifies the node
 
         if lambda > 0
     
-            direction = sprintf('The eigenvalue is positive and the coefficient matrix is diagonalizable, so (0,0) is a source and a star node.');
+            direction = sprintf('The eigenvalue is positive and the coefficient matrix is diagonal, so the point (%d,%d) is a source and a star node.', shiftVec(1), shiftVec(2));
             
         elseif lambda < 0
     
-            direction = sprintf('The eigenvalue is negative and the coefficient matrix is diagonalizable, so (0,0) is a sink and a star node.');
+            direction = sprintf('The eigenvalue is negative and the coefficient matrix is diagonal, so (%d,%d) is a sink and a star node.', shiftVec(1), shiftVec(2));
     
         end
-    
 
     end
 
@@ -404,7 +418,7 @@ elseif D(1) == 0 || D(2) == 0 && D(1) ~= D(2)
         
             x2 = c2(j).*exp(nonzeroEig*t).*V2;
         
-            x = x1 + x2;
+            x = x1 + x2 + shiftVec; % Added functionality for shifted systems
         
             x_1new = x(1,:);
         
@@ -425,7 +439,7 @@ elseif D(1) == 0 || D(2) == 0 && D(1) ~= D(2)
 
         ybounds = [yl(2) yl(1)];
 
-        plot(zeros(1,2), ybounds, 'm-')
+        plot(zeros(1,2) + shiftVec(1), ybounds, 'm-')
 
     % Handles case when the eigenvector corresponding to the nonzero
     % eigenvalue is the x1-axis
@@ -436,7 +450,7 @@ elseif D(1) == 0 || D(2) == 0 && D(1) ~= D(2)
 
         xbounds = [xl(2) xl(1)];
 
-        plot(xbounds, zeros(1,2), 'm-')
+        plot(xbounds, zeros(1,2) + shiftVec(2), 'm-')
 
     % Handles case when the eigenvector corresponding to the nonzero
     % eigenvalue is not on the x1- or x2-axis   
@@ -453,7 +467,7 @@ elseif D(1) == 0 || D(2) == 0 && D(1) ~= D(2)
     
         ybounds = [y -y];
     
-        plot(xbounds, ybounds, 'm-')
+        plot(xbounds + shiftVec(1), ybounds + shiftVec(2), 'm-')
 
     end
 
@@ -465,29 +479,54 @@ elseif D(1) == 0 || D(2) == 0 && D(1) ~= D(2)
     
     title('Phase Portrait')
 
-    if sum(D) > 0
+    if sum(D) > 0 && shiftVec(1) == 0 && shiftVec(2) == 0
 
-        direction = sprintf('The nonzero eigenvalue is positive, so solutions diverge from the critical line spanned by the eigenvector [%f %f].', V1(1), V1(2));
+        direction = sprintf('The nonzero eigenvalue is positive, so solutions diverge from the critical line spanned by the eigenvector [%d %d].', V1(1), V1(2));
 
-    elseif sum(D) < 0
+    elseif sum(D) < 0 && shiftVec(1) == 0 && shiftVec(2) == 0
 
-        direction = sprintf('The nonzero eigenvalue is negative, so solutions converge to the critical line spanned by the eigenvector [%f %f].', V1(1), V1(2));
+        direction = sprintf('The nonzero eigenvalue is negative, so solutions converge to the critical line spanned by the eigenvector [%d %d].', V1(1), V1(2));
+
+    elseif sum(D) > 0 && shiftVec(1) ~= 0 && shiftVec(2) ~= 0
+
+        direction = sprintf('The nonzero eigenvalue is positive, so solutions diverge from the shifted critical line spanned by the eigenvector [%d %d] and passing through the point (%d,%d).', V1(1), V1(2), shiftVec(1), shiftVec(2));
+
+    elseif sum(D) < 0 && shiftVec(1) ~= 0 && shiftVec(2) ~= 0
+
+        direction = sprintf('The nonzero eigenvalue is negative, so solutions converge to the shifted critical line spanned by the eigenvector [%d %d] and passing through the point (%d,%d).', V1(1), V1(2), shiftVec(1), shiftVec(2));
 
     end
 
-    % Note that the magenta line is the critical line and the blue line is
-    % the solution on the eigenvector corresponding to the nonzero eigenvalue solution
+    % Note that the magenta line is the critical line 
 
 end
 
-% Sets x and y limits on graph if last two inputs are not left empty
+% Sets x and y viewing limits on graph and centers on shifted system if
+% specified in input
 
-if ~isempty(xLims) && ~isempty(yLims)
+if ~isempty(xLims) && ~isempty(yLims) && isCentered == 0
 
-xlim(xLims)
+    xlim(xLims)
 
-ylim(yLims)
+    ylim(yLims)
+
+elseif ~isempty(xLims) && ~isempty(yLims) && isCentered == 1 % Centers on new shifted node if isCentered == 1
+
+    viewWidthX = xLims(2) - xLims(1);
+
+    viewWidthY = yLims(2) - yLims(1);
+
+    xLims = [-viewWidthX/2 viewWidthX/2] + shiftVec(1);
+
+    yLims = [-viewWidthY/2 viewWidthY/2] + shiftVec(2);
+
+    xlim(xLims)
+
+    ylim(yLims)
 
 end
+
+% Figure automatically centers if x- and y-limits are not imposed, so
+% further conditionals are unnecessary
 
 end
